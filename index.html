@@ -1,0 +1,431 @@
+
+  
+  <style>
+      textarea {
+        font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+      }
+  </style>
+  
+  <div class="w3-bar w3-black">
+      <h4 class="w3-left">Sequence Logos Visualization</h4>
+  </div>
+  
+  <div class="slidecontainer">
+    
+      <div class="w3-container w3-cell">
+        <p>Height:</p>
+      </div>
+  
+      <div class="w3-container w3-cell">
+        <p><input type="range" min="100" max="1000" value="200" class="slider" id="canvas_h"></p>
+      </div>
+        
+      <div class="w3-container w3-cell">
+        <p><div class="slidecontainer" id="info_canvas_h">200 px</div></p>
+      </div>
+    
+  
+    
+      <div class="w3-container w3-cell">
+        <p>Width:</p>
+      </div>
+  
+      <div class="w3-container w3-cell">
+        <p><input type="range" min="600" max="2000" value="900" class="slider" id="canvas_w"></p>
+      </div>
+        
+      <div class="w3-container w3-cell">
+        <p><div class="slidecontainer" id="info_canvas_w">900 px</div></p>
+      </div>
+    
+  </div>
+  
+  <div class="slidecontainer">
+      <div class="w3-container w3-cell">
+          <canvas id="bio" width="900" height="200" class="w3-animate-zoom"></canvas>
+      </div>
+  </div>
+  
+  <canvas id="letter" width="370" height="410" style="display: none;"></canvas>
+  
+  <hr>
+  
+  <div class="slidecontainer">
+  
+      <div class="w3-container w3-cell">
+          <label>Adjustment:</label><hr>
+          <textarea rows="4" cols="50" id="Adjustment"></textarea>
+      </div>
+  
+  </div>
+  
+  
+  <div class="slidecontainer">
+  
+      <div class="w3-container w3-cell">
+        <p>X Start from position:</p>
+      </div>
+  
+      <div class="w3-container w3-cell">
+        <p><input type="range" min="0" max="20" value="0" class="slider w3-animate-zoom" id="X:start_from"></p>
+      </div>
+        
+      <div class="w3-container w3-cell">
+        <p><div class="slidecontainer" id="info_sq">1</div></p>
+      </div>
+  
+  </div>
+<!------
+  <div class="slidecontainer">
+  
+    <div class="w3-container w3-cell">
+      <p>Y Start from position:</p>
+    </div>
+
+    <div class="w3-container w3-cell">
+      <p><input type="range" min="0" max="20" value="0" class="slider w3-animate-zoom" id="Y:start_from"></p>
+    </div>
+      
+    <div class="w3-container w3-cell">
+      <p><div class="slidecontainer" id="info_sq">1</div></p>
+    </div>
+
+ </div>
+  -->
+  <hr>
+  
+  <div class="slidecontainer">
+  
+      <div class="w3-container w3-cell">
+        <p>
+        <input class="w3-check" type="checkbox" id="show_bottom" checked>
+        <label>Show baseline</label>
+        </p>
+      </div>
+  
+      <div class="w3-container w3-cell">
+        <p>
+        <input class="w3-check" type="checkbox" id="show_bottom_divisions" checked>
+        <label>Show baseline divisions</label>
+        </p>
+      </div>
+  
+  </div>
+  
+  
+  
+  <div id="see"></div>
+  <script>
+  
+      //Input text
+      document.getElementById("Adjustment").oninput = function() {
+          c = document.getElementById("Adjustment").value;
+          c = c.replace(/\n/g, ',').replace(/ /g, '').replace(/&emsp;/g, '').replace(/\t/g, '').replace(/	/g, '');;
+          
+          c = c.replace(/,,/g, ',');
+          if(c.charAt(0)==','){c = c.substring(1, c.length);}
+          
+          var tmp = matrix(c);
+          logo(tmp[0],tmp[1]);
+      }
+  
+      //Canvas Height
+      document.getElementById("canvas_h").oninput = function() {
+          document.getElementById('bio').height = this.value;
+          document.getElementById("info_canvas_h").innerHTML = this.value + " px";
+  
+          tmp = matrix(c);
+          logo(tmp[0],tmp[1]);
+      }
+      
+      //Canvas Width
+      document.getElementById("canvas_w").oninput = function() {
+          document.getElementById('bio').width = this.value;
+          document.getElementById("info_canvas_w").innerHTML = this.value + " px";
+          
+          tmp = matrix(c);
+          logo(tmp[0],tmp[1]);
+      }
+  
+      //X Start from position
+      document.getElementById("X:start_from").oninput = function() {
+          document.getElementById("info_sq").innerHTML = Number(this.value) + 1;
+          sq = this.value;
+          tmp = matrix(c);
+          logo(tmp[0],tmp[1]);
+      }
+
+      //Y Start from position
+     // document.getElementById("Y:start_from").oninput = function() {
+     //     document.getElementById("info_sq").innerHTML = Number(this.value) + 1;
+      //    sq = this.value;
+      //    tmp = matrix(c);
+      //    logo(tmp[1],tmp[0]);
+     // }
+
+      //Show bottom
+      document.getElementById("show_bottom").oninput = function() {
+          tmp = matrix(c);
+          logo(tmp[0],tmp[1]);
+      }
+  
+      //Show bottom divisions
+      document.getElementById("show_bottom_divisions").oninput = function() {
+          tmp = matrix(c);
+          logo(tmp[0],tmp[1]);
+      }
+  
+  
+  var sq = 0;  // position
+  var li = 3;	 // axis line
+  var bo = 28; // bottom font size
+  var lo = 540;// letter size
+  
+  //RPN4
+  
+  
+  document.getElementById("Adjustment").innerHTML = c.replace(/,/g, '\n');
+  
+  var tmp;
+  
+  tmp = matrix(c);
+  logo(tmp[0],tmp[1]);
+  
+  
+  function matrix(c){
+  
+      var s = [];
+      var m = [];
+  
+      m = c.split(',');
+      var n = m.length;
+  
+      //THE ALIGNMENT MATRIX
+      for(var i=0; i<n; i++){
+          s[i] = [];
+          s[i]=m[i].split('');
+      }
+  
+      //DETECT ALL LETTERS USING ARRAYS
+      var a = [];
+  
+      var t = c.replace(/,/g, '').split('');
+      var k = t.length;
+  
+      for(var i=0; i<=k; i++){
+          var q = 1;
+          for(var j=0; j<=a.length; j++){
+              if (t[i] === a[j]) {q = 0;}
+          }
+          if (q === 1) {a.push(t[i]);}
+      }
+  
+      // PROFILE MATRIX INITIALIZATION
+      var p = [];
+  
+      for(var h=0; h<a.length; h++){
+          p[h]=[];
+          for(var i=0; i<=s[0].length; i++) {
+              p[h][i]=0;
+              p[h][0]=a[h];
+          }
+      }
+  
+      // THE POSITION FREQUENCY MATRIX
+      for(var i=0; i<s.length; i++) {
+  
+          for(var j=0; j<s[i].length; j++){
+                      
+              for(var h=0; h<a.length; h++){
+              
+                  if (s[i][j] === a[h]) {p[h][j+1]++;}
+              }
+          }
+      }
+  
+      // THE POSITION PROBABILITY MATRIX
+      var max = 0;
+      for(var i=0; i<p.length; i++) {
+          for(var j=0; j<p[i].length-1; j++){
+          
+              p[i][j+1]=p[i][j+1]/s.length;
+              p[i][j+1]=p[i][j+1].toFixed(2);
+              
+              if(max<=p[i][j+1]){max=p[i][j+1];}
+              
+              p[i][j+1]+='|'+p[i][0] 
+          }
+      }
+      
+      return [p, max];
+  }
+  
+  
+  function logo(M, max) {
+  
+      //MAKE LOGO
+      var a = [];
+      var t = M[0].length;
+  
+      var canvas = document.getElementById('bio');
+      var canvasl = document.getElementById('letter');
+      var ctl = canvasl.getContext('2d');
+      
+      var w = canvas.width - 80;
+      var h = canvas.height - 40;
+      
+      var wl = canvasl.width;
+      var hl = canvasl.height;
+      
+      if (canvas.getContext) {
+  
+          var ctx = canvas.getContext('2d');
+          
+          ctx.clearRect(0, 0, w+80, h+40);
+  
+          for(var j=1; j<t; j++){
+          
+              //ORDER VALUES ON EACH COLUMN
+              for(var k=0; k<M.length; k++){
+                  a[k]=[];
+                  a[k][0] = M[k][j].split('|')[0];
+                  a[k][1] = M[k][j].split('|')[1];
+              }
+  
+              a = iSort(a);
+              
+              for(var k=0; k<M.length; k++){
+                  M[k][j] = a[k][0] + '|' + a[k][1];
+              }
+  
+              // LOGO
+              var iw = (w/(t-1))-1;
+              var x = 80+(j-1)*iw;
+              
+              var pune = 0;
+              
+              for (var u=0; u<a.length; u++)
+              {
+                  ctl.imageSmoothingQuality = 'high';
+                  ctl.clearRect(0, 0, wl, hl);
+                  ctl.font = 'bold ' + lo + 'px Arial';
+                  
+                  var cl = 'black';
+                  if(a[u][1]=='G'){cl='#fcaf07';}
+                  if(a[u][1]=='T'){cl='#d50000';}
+                  if(a[u][1]=='A'){cl='#07d607';}
+                  if(a[u][1]=='C'){cl='#0909c8';}
+                  
+                  ctl.fillStyle = cl;
+                  
+                  var ltr = ctl.measureText(a[u][1]).width;
+                  ctl.fillText(a[u][1], (wl/2)-(ltr/2), hl-5);
+                  
+                  var y = (h-Math.floor((h/max)*(Number(a[u][0])+pune)));
+                  
+                  if(u>0){var ih = h-((h/max)*(pune))-y;}
+                  if(u==0){var ih = h-y;}
+                  
+                  pune += Number(a[u][0]);
+                  
+                  ih = Math.floor(ih);
+  
+                  ctx.imageSmoothingQuality = 'high';
+                  ctx.drawImage(canvasl, x, y, iw, ih);
+              }
+          }
+          
+          //AXIS
+          if(t>=2){
+          
+              ctx.lineWidth = li;
+              ctx.closePath();
+              ctx.beginPath();
+              ctx.strokeStyle = '#454545';
+  
+              for (var i=1; i<t; i++)
+              {
+                  if(document.getElementById("show_bottom_divisions").checked) {
+                      ctx.moveTo(80+Math.floor(iw*i), h+4);
+                      ctx.lineTo(80+Math.floor(iw*i), h+20);
+                  }
+                  
+                  ctx.font = bo + 'px Arial';
+                  var txt = Number(i)+Number(sq);
+                  var ltr = ctx.measureText(txt).width;
+                  ctx.fillText(txt, (iw/2)-(ltr/2)+80+(i-1)*iw, h+40);
+              }
+              ctx.stroke();
+              
+              //bottom line
+              ctx.moveTo(60, h+4);
+              if(document.getElementById("show_bottom").checked) {
+                  ctx.lineTo(80+Math.floor(iw*(t-1)), h+4);
+              } else {
+                  ctx.lineTo(75, h+4);
+              }
+              ctx.stroke();
+              
+              //left vertical line
+              ctx.moveTo((75), 4);
+              ctx.lineTo((75), h+40);
+              ctx.stroke();
+  
+              //vertical divisions
+              for (var i=0; i<10; i++)
+              {
+                  var fi = 65;
+                  if(i==0){fi = 0}
+                  ctx.moveTo(75, 4+(Math.floor((h+4)/10)*i));
+                  ctx.lineTo(fi, 4+(Math.floor((h+4)/10)*i));
+              }
+              ctx.stroke();
+              
+              //MAX text
+              text = 'Max';
+              dim = ctx.measureText(text).width
+              ctx.save();
+              ctx.translate(0,32);
+              ctx.font = "30px Arial";
+              ctx.fillStyle = "#000000";
+              ctx.textAlign = "left";
+              ctx.fillText(text, 0, 0);
+              ctx.restore();
+              
+              text = '0';
+              dim = ctx.measureText(text).width
+              ctx.save();
+              ctx.translate(40,h+15);
+              ctx.font = "30px Arial";
+              ctx.fillStyle = "#000000";
+              ctx.textAlign = "left";
+              ctx.fillText(text, 0, 0);
+              ctx.restore();
+          }
+      }
+  }
+  
+  //SORT
+  function iSort(a) {
+      var n = a.length;
+      for (var i = 1; i < n; i++) {
+          let n = a[i][0];
+          let j = i-1;
+          
+          while ((j > -1) && (n < a[j][0])) {
+          
+              a[j+1][0] = a[j][0];
+              
+              var t = a[j+1][1];
+              a[j+1][1] = a[j][1];
+              a[j][1]=t;
+              j--;
+          }
+          a[j+1][0] = n;
+      }
+      return a;
+  }
+  
+  </script>
+  
+ 
